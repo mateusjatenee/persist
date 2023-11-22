@@ -15,27 +15,30 @@ trait Persist
 {
     public function persist(): bool
     {
-        // BelongsTo relationships must be handled earlier than the other relationships.
-        // Since record creation will fail unless the foreign key is set on the base
-        // model, we need to ensure that the BelongsTo relationships are created.
-        if (! $this->persistRelations($this->getRelationsOfType(BelongsTo::class)->all())) {
-            return false;
-        }
+        return $this->getConnection()->transaction(function () {
+            // BelongsTo relationships must be handled earlier than the other relationships.
+            // Since record creation will fail unless the foreign key is set on the base
+            // model, we need to ensure that the BelongsTo relationships are created.
 
-        if (! $this->save()) {
-            return false;
-        }
+            if (! $this->persistRelations($this->getRelationsOfType(BelongsTo::class)->all())) {
+                return false;
+            }
 
-        // To sync all of the relationships to the database, we will simply spin through
-        // the relationships and save each model via this "push" method, which allows
-        // us to recurse into all of these nested relations for the model instance.
-        if (! $this->persistRelations(
-            $this->getRelationsOfType(MorphOneOrMany::class, HasOneOrMany::class, BelongsToMany::class)->all()
-        )) {
-            return false;
-        }
+            if (! $this->save()) {
+                return false;
+            }
 
-        return true;
+            // To sync all of the relationships to the database, we will simply spin through
+            // the relationships and save each model via this "push" method, which allows
+            // us to recurse into all of these nested relations for the model instance.
+            if (! $this->persistRelations(
+                $this->getRelationsOfType(MorphOneOrMany::class, HasOneOrMany::class, BelongsToMany::class)->all()
+            )) {
+                return false;
+            }
+
+            return true;
+        });
     }
 
     protected function persistRelations($relations): bool

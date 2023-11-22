@@ -171,7 +171,6 @@ class PersistTest extends TestCase
         $user->save();
 
         $user->posts->push($post);
-
         $this->assertFalse($user->persist());
     }
 }
