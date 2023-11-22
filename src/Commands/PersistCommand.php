@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace Mateusjatenee\Persist\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class PersistCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'laravel-persist';
 
     public $description = 'My command';
 
