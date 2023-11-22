@@ -179,6 +179,29 @@ class PersistTest extends TestCase
         $user->posts->push($post);
         $this->assertFalse($user->persist());
     }
+
+    public function testPersistSavesANestedRelation(): void
+    {
+        $post = Post::make(['title' => 'Test title']);
+        $details = PostDetails::make(['description' => 'Test description']);
+        $tag = Tag::make(['tag' => 'Test tag']);
+        $user = User::make(['name' => 'Test']);
+
+        // Build the object graph
+
+        $user->posts->push($post);
+        $post->details = $details;
+        $post->tags->push($tag);
+
+        $this->assertTrue($user->persist());
+
+        $user->refresh();
+
+        $this->assertEquals(1, $user->id);
+        $this->assertTrue($user->posts->first()->is($post));
+        $this->assertTrue($user->posts->first()->details->is($details));
+        $this->assertTrue($user->posts->first()->tags->first()->is($tag));
+    }
 }
 
 class User extends Model
