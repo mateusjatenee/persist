@@ -1,19 +1,9 @@
-# This is my package laravel-persist
+# Laravel Persist 
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mateusjatenee/laravel-persist.svg?style=flat-square)](https://packagist.org/packages/mateusjatenee/laravel-persist)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/mateusjatenee/laravel-persist/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/mateusjatenee/laravel-persist/actions?query=workflow%3Arun-tests+branch%3Amain)
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/mateusjatenee/laravel-persist/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/mateusjatenee/laravel-persist/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/mateusjatenee/laravel-persist.svg?style=flat-square)](https://packagist.org/packages/mateusjatenee/laravel-persist)
-
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
-
-## Support us
-
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/laravel-persist.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/laravel-persist)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
 
 ## Installation
 
@@ -23,38 +13,47 @@ You can install the package via composer:
 composer require mateusjatenee/laravel-persist
 ```
 
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="laravel-persist-migrations"
-php artisan migrate
-```
-
-You can publish the config file with:
-
-```bash
-php artisan vendor:publish --tag="laravel-persist-config"
-```
-
-This is the contents of the published config file:
-
-```php
-return [
-];
-```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="laravel-persist-views"
-```
-
 ## Usage
+Simply add the `Persist` trait to your models. For example:   
 
 ```php
-$persist = new Mateusjatenee\Persist();
-echo $persist->echoPhrase('Hello, Mateusjatenee!');
+namespace App\Models;
+
+class Order extends Model
+{
+    use Persist;
+}
 ```
+
+Now you'll be able to persist the entire object graph using the `persist` method. For example:
+
+```php
+class ProcessCheckoutHandler
+{
+    public function __construct(
+        private DatabaseManager $database,
+    ) {
+    }
+
+    public function handle(ProcessCheckout $command)
+    {
+        $order = Order::startForCustomer($command->customer->id);
+        $order->lines->push($command->cartItems->toOrderLines());
+        
+        $charge = $command->gateway->pay($command->pendingPayment);
+        
+        $order->payment = Payment::fromCharge($charge);
+        $order->payment->customer = $command->customer;
+
+        $order->persist();
+        
+        return $order;
+    }
+}
+```
+
+In the example above, 4 entities will be persisted to the database: `Order`, `OrderLine`, `Payment`, and `Customer`.  
+`persist` runs, by default, within a transaction, so that if any queries fail, the entire transaction is rolled back.
 
 ## Testing
 
@@ -69,10 +68,6 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 ## Contributing
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
 
 ## Credits
 
