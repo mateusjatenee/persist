@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Database\Eloquent\Relations\MorphOneOrMany;
 use Illuminate\Support\Collection;
+use ReflectionClass;
+use ReflectionMethod;
 
 /** @mixin \Illuminate\Database\Eloquent\Model */
 trait Persist
@@ -16,6 +18,8 @@ trait Persist
 
     public function persist(): bool
     {
+        $this->verifyRequiredRelationships();
+
         return $this->getConnection()->transaction(function () {
             if (! $this->persistModels()) {
                 return false;
@@ -96,5 +100,27 @@ trait Persist
         }
 
         return parent::setAttribute($key, $value);
+    }
+
+    protected function verifyRequiredRelationships(): void
+    {
+        $requiredRelationships = $this->getRequiredRelationships();
+
+        foreach ($requiredRelationships as $relationship) {
+            if (! $this->relationLoaded($relationship)) {
+                throw ModelMissingRequiredRelationshipException::make(static::class, $relationship);
+            }
+        }
+    }
+
+    protected function getRequiredRelationships(): Collection
+    {
+        $reflector = new ReflectionClass($this);
+        $methods = $reflector->getMethods();
+
+        return (new Collection($methods))
+            ->filter(fn (ReflectionMethod $method) => count($method->getAttributes(RequiredRelationship::class)) !== 0)
+            ->map(fn ($method) => $method->getName())
+            ->values();
     }
 }
