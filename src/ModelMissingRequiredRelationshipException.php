@@ -14,6 +14,6 @@ class ModelMissingRequiredRelationshipException extends RuntimeException
      */
     public static function make(string $model, string $relationship): self
     {
-        return new self("The model {$model} is missing the required relationship {$relationship}");
+        return new self("The model [{$model}] is missing the required relationship [{$relationship}]");
     }
 }
