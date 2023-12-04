@@ -107,7 +107,7 @@ trait Persist
         $requiredRelationships = $this->getRequiredRelationships();
 
         foreach ($requiredRelationships as $relationship) {
-            if (! $this->relationLoaded($relationship)) {
+            if (! $this->isRelationLoadedAndFilled($relationship)) {
                 throw ModelMissingRequiredRelationshipException::make(static::class, $relationship);
             }
         }
@@ -122,5 +122,15 @@ trait Persist
             ->filter(fn (ReflectionMethod $method) => count($method->getAttributes(RequiredRelationship::class)) !== 0)
             ->map(fn ($method) => $method->getName())
             ->values();
+    }
+
+    protected function isRelationLoadedAndFilled(string $relation): bool
+    {
+        if ($this->{$relation} instanceof Collection) {
+            return $this->{$relation}->isNotEmpty();
+        }
+
+        return $this->relationLoaded($relation)
+            && ! is_null($this->getRelation($relation));
     }
 }

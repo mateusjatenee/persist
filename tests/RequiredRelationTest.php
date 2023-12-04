@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mateusjatenee\Persist\Tests;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Schema;
@@ -28,6 +29,12 @@ class RequiredRelationTest extends TestCase
             $table->string('description');
             $table->unsignedInteger('post_id');
         });
+
+        Schema::create('comments', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('comment');
+            $table->nullableMorphs('commentable');
+        });
     }
 
     /** @test */
@@ -35,6 +42,17 @@ class RequiredRelationTest extends TestCase
     {
         $this->expectException(ModelMissingRequiredRelationshipException::class);
         $post = PostX::make(['title' => 'test']);
+        $post->comments->push(CommentX::make(['comment' => 'test']));
+        $post->persist();
+    }
+
+    /** @test */
+    public function it_fails_if_a_has_many_relationship_is_missing(): void
+    {
+        $this->expectException(ModelMissingRequiredRelationshipException::class);
+        $post = PostX::make(['title' => 'test']);
+        $post->comments;
+        $post->details = PostDetailsX::make(['description' => 'test']);
         $post->persist();
     }
 
@@ -43,6 +61,7 @@ class RequiredRelationTest extends TestCase
     {
         $post = PostX::make(['title' => 'test']);
         $post->details = PostDetailsX::make(['description' => 'test']);
+        $post->comments->push(CommentX::make(['comment' => 'test']));
         $post->persist();
 
         $this->assertDatabaseHas('posts', ['title' => 'test']);
@@ -65,6 +84,12 @@ class PostX extends Model
     {
         return $this->hasOne(PostDetailsX::class, 'post_id');
     }
+
+    #[RequiredRelationship]
+    public function comments()
+    {
+        return $this->morphMany(CommentX::class, 'commentable');
+    }
 }
 
 class PostDetailsX extends Model
@@ -80,5 +105,21 @@ class PostDetailsX extends Model
     public function post()
     {
         return $this->belongsTo(PostX::class, 'post_id');
+    }
+}
+
+class CommentX extends Model
+{
+    use Persist;
+
+    public $timestamps = false;
+
+    protected $guarded = [];
+
+    protected $table = 'comments';
+
+    public function commentable(): MorphTo
+    {
+        return $this->morphTo('commentable');
     }
 }
