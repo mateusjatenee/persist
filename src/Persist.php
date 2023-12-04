@@ -16,6 +16,9 @@ trait Persist
 {
     use HandlesRelationships;
 
+    /** @var array<string|object> */
+    protected $events = [];
+
     public function persist(): bool
     {
         $this->verifyRequiredRelationships();
@@ -25,8 +28,31 @@ trait Persist
                 return false;
             }
 
+            $this->dispatchEvents();
+
             return true;
         });
+    }
+
+    public function recordEvent(string|object $event): void
+    {
+        $this->events[] = $event;
+    }
+
+    public function flushEvents(): void
+    {
+        $this->events = [];
+    }
+
+    protected function dispatchEvents(): void
+    {
+        foreach ($this->events as $event) {
+            $event = $event instanceof \Closure ? $event($this) : $event;
+
+            static::$dispatcher->dispatch($event);
+        }
+
+        $this->flushEvents();
     }
 
     protected function persistModels(): bool
