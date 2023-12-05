@@ -68,16 +68,6 @@
             "phpstan/extension-installer": true
         }
     },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Mateusjatenee\\Persist\\PersistServiceProvider"
-            ],
-            "aliases": {
-                "Persist": "Mateusjatenee\\Persist\\Facades\\Persist"
-            }
-        }
-    },
     "minimum-stability": "dev",
     "prefer-stable": true
 }
