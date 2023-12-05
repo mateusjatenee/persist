@@ -10,7 +10,6 @@ class ModelMissingRequiredRelationshipException extends RuntimeException
 {
     /**
      * @param  class-string<\Illuminate\Database\Eloquent\Model>  $model
-     * @return static
      */
     public static function make(string $model, string $relationship): self
     {
