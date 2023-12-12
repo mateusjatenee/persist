@@ -16,9 +16,9 @@ class RelationManager
     ) {
     }
 
-    public static function for(Model $model): static
+    public static function for(Model $model): RelationManager
     {
-        return new static($model);
+        return new RelationManager($model);
     }
 
     public function verifyRequiredRelationships(): void
@@ -27,7 +27,7 @@ class RelationManager
 
         foreach ($requiredRelationships as $relationship) {
             if (! $this->isRelationLoadedAndFilled($relationship)) {
-                throw ModelMissingRequiredRelationshipException::make(static::class, $relationship);
+                throw ModelMissingRequiredRelationshipException::make($this->model::class, $relationship);
             }
         }
     }

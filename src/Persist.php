@@ -61,7 +61,6 @@ trait Persist
         // BelongsTo relationships must be handled earlier than the other relationships.
         // Since record creation will fail unless the foreign key is set on the base
         // model, we need to ensure that the BelongsTo relationships are created.
-
         if (! $this->persistRelations(
             $this->relationManager()->getRelationsOfType(BelongsTo::class))
         ) {

@@ -2,6 +2,7 @@ includes:
     - phpstan-baseline.neon
 
 parameters:
+    checkGenericClassInNonGenericObjectType: false
     level: 8
     paths:
         - src
