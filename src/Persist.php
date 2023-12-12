@@ -91,6 +91,8 @@ trait Persist
             foreach (array_filter($models) as $model) {
                 $relation = $this->{$relationName}();
 
+                // MorphOneOrMany and HasOneOrMany relationships require the foreign key
+                // and morph type to be set on the model before it can be persisted.
                 if ($relation instanceof MorphOneOrMany) {
                     $model->setAttribute($relation->getForeignKeyName(), $relation->getParentKey())
                         ->setAttribute($relation->getMorphType(), $relation->getMorphClass());
@@ -102,6 +104,8 @@ trait Persist
                     return false;
                 }
 
+                // BelongsTo and BelongsToMany relationships require the related model to be persisted beforehand.
+                // e.g Post -> belongsTo User. We need to persist the User before we can set the foreign key.
                 if ($relation instanceof BelongsTo) {
                     $relation->associate($model);
                 } elseif ($relation instanceof BelongsToMany) {
@@ -119,6 +123,8 @@ trait Persist
      * @param  string  $key
      * @param  mixed  $value
      * @return mixed
+     *
+     * @throws \ReflectionException
      */
     public function setAttribute($key, $value)
     {
