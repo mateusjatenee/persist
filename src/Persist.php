@@ -62,7 +62,9 @@ trait Persist
         // Since record creation will fail unless the foreign key is set on the base
         // model, we need to ensure that the BelongsTo relationships are created.
 
-        if (! $this->persistRelations($this->relationManager()->getRelationsOfType(BelongsTo::class)->all())) {
+        if (! $this->persistRelations(
+            $this->relationManager()->getRelationsOfType(BelongsTo::class))
+        ) {
             return false;
         }
 
@@ -74,7 +76,7 @@ trait Persist
         // the relationships and save each model via this "push" method, which allows
         // us to recurse into all of these nested relations for the model instance.
         if (! $this->persistRelations(
-            $this->relationManager()->getRelationsOfType(MorphOneOrMany::class, HasOneOrMany::class, BelongsToMany::class)->all()
+            $this->relationManager()->getRelationsExceptOfType(BelongsTo::class)
         )) {
             return false;
         }
