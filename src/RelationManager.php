@@ -12,7 +12,7 @@ use ReflectionMethod;
 class RelationManager
 {
     public function __construct(
-        private readonly Model $model
+        protected readonly Model $model
     ) {
     }
 
@@ -32,10 +32,47 @@ class RelationManager
         }
     }
 
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Relations\Relation>  ...$types
+     * @return \Illuminate\Support\Collection<int, \Illuminate\Database\Eloquent\Relations\Relation>
+     */
+    public function getRelationsOfType(string ...$types): Collection
+    {
+        return (new Collection($this->model->getRelations()))
+            ->filter(fn ($models, $relation) => $this->isRelationshipOfType($relation, $types));
+    }
+
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Relations\Relation>  ...$types
+     * @return \Illuminate\Support\Collection<int, \Illuminate\Database\Eloquent\Relations\Relation>
+     */
+    public function getRelationsExceptOfType(string ...$types): Collection
+    {
+        return (new Collection($this->model->getRelations()))
+            ->reject(fn ($models, $relation) => $this->isRelationshipOfType($relation, $types));
+    }
+
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Relations\Relation>[]  $types
+     */
+    public function isRelationshipOfType(string $relation, array $types): bool
+    {
+        if (! $relationObject = $this->model->$relation()) {
+            return false;
+        }
+
+        foreach ($types as $type) {
+            if ($relationObject instanceof $type) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     protected function getRequiredRelationships(): Collection
     {
-        $reflector = new ReflectionClass($this->model);
-        $methods = $reflector->getMethods();
+        $methods = (new ReflectionClass($this->model))->getMethods();
 
         return (new Collection($methods))
             ->filter(fn (ReflectionMethod $method) => count($method->getAttributes(RequiredRelationship::class)) !== 0)

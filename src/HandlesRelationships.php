@@ -41,46 +41,4 @@ trait HandlesRelationships
         return ! method_exists(Model::class, $key)
             && count((new ReflectionMethod($this, $key))->getParameters()) === 0;
     }
-
-    /**
-     * @param  class-string<\Illuminate\Database\Eloquent\Relations\Relation>  ...$types
-     * @return \Illuminate\Support\Collection<int, \Illuminate\Database\Eloquent\Relations\Relation>
-     */
-    public function getRelationsOfType(string ...$types): Collection
-    {
-        return collect($this->getRelations())->filter(function ($models, $relation) use ($types) {
-            return $this->isRelationshipOfType($relation, $types);
-        });
-    }
-
-    /**
-     * @param  class-string<\Illuminate\Database\Eloquent\Relations\Relation>  ...$types
-     * @return \Illuminate\Support\Collection<int, \Illuminate\Database\Eloquent\Relations\Relation>
-     */
-    public function getRelationsExceptOfType(string ...$types): Collection
-    {
-        return collect($this->getRelations())->reject(function ($models, $relation) use ($types) {
-            return $this->isRelationshipOfType($relation, $types);
-        });
-    }
-
-    /**
-     * @param  class-string<\Illuminate\Database\Eloquent\Relations\Relation>[]  $types
-     */
-    public function isRelationshipOfType(string $relation, array $types): bool
-    {
-        $relationObject = $this->$relation();
-
-        if (! $relationObject) {
-            return false;
-        }
-
-        foreach ($types as $type) {
-            if ($relationObject instanceof $type) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }
