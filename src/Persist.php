@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Database\Eloquent\Relations\MorphOneOrMany;
 use Illuminate\Support\Collection;
-use ReflectionClass;
-use ReflectionMethod;
 
 /** @mixin \Illuminate\Database\Eloquent\Model */
 trait Persist
@@ -21,7 +19,7 @@ trait Persist
 
     public function persist(): bool
     {
-        $this->verifyRequiredRelationships();
+        $this->relationManager()->verifyRequiredRelationships();
 
         return $this->getConnection()->transaction(function () {
             if (! $this->persistModels()) {
@@ -126,37 +124,5 @@ trait Persist
         }
 
         return parent::setAttribute($key, $value);
-    }
-
-    protected function verifyRequiredRelationships(): void
-    {
-        $requiredRelationships = $this->getRequiredRelationships();
-
-        foreach ($requiredRelationships as $relationship) {
-            if (! $this->isRelationLoadedAndFilled($relationship)) {
-                throw ModelMissingRequiredRelationshipException::make(static::class, $relationship);
-            }
-        }
-    }
-
-    protected function getRequiredRelationships(): Collection
-    {
-        $reflector = new ReflectionClass($this);
-        $methods = $reflector->getMethods();
-
-        return (new Collection($methods))
-            ->filter(fn (ReflectionMethod $method) => count($method->getAttributes(RequiredRelationship::class)) !== 0)
-            ->map(fn ($method) => $method->getName())
-            ->values();
-    }
-
-    protected function isRelationLoadedAndFilled(string $relation): bool
-    {
-        if ($this->{$relation} instanceof Collection) {
-            return $this->{$relation}->isNotEmpty();
-        }
-
-        return $this->relationLoaded($relation)
-            && ! is_null($this->getRelation($relation));
     }
 }

@@ -11,11 +11,18 @@ use ReflectionMethod;
 /** @mixin Persist */
 trait HandlesRelationships
 {
+    protected function relationManager(): RelationManager
+    {
+        return RelationManager::for($this);
+    }
+
     /**
      * Determine if the given key is a relationship method on the model.
      *
      * @param  string  $key
      * @return bool
+     *
+     * @throws \ReflectionException
      */
     public function isRelation($key)
     {
