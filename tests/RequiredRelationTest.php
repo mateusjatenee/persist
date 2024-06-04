@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Schema;
 use Mateusjatenee\Persist\ModelMissingRequiredRelationshipException;
 use Mateusjatenee\Persist\Persist;
 use Mateusjatenee\Persist\RequiredRelationship;
-use PHPUnit\Framework\Attributes\Test;
 
 class RequiredRelationTest extends TestCase
 {
@@ -38,8 +37,7 @@ class RequiredRelationTest extends TestCase
         });
     }
 
-    #[Test]
-    public function it_fails_if_a_relationship_is_missing(): void
+    public function test_it_fails_if_a_relationship_is_missing(): void
     {
         $this->expectException(ModelMissingRequiredRelationshipException::class);
         $post = PostX::make(['title' => 'test']);
@@ -47,8 +45,7 @@ class RequiredRelationTest extends TestCase
         $post->persist();
     }
 
-    #[Test]
-    public function it_fails_if_a_has_many_relationship_is_missing(): void
+    public function test_it_fails_if_a_has_many_relationship_is_missing(): void
     {
         $this->expectException(ModelMissingRequiredRelationshipException::class);
         $post = PostX::make(['title' => 'test']);
@@ -57,8 +54,7 @@ class RequiredRelationTest extends TestCase
         $post->persist();
     }
 
-    #[Test]
-    public function it_persists_a_model_with_required_relationships(): void
+    public function test_it_persists_a_model_with_required_relationships(): void
     {
         $post = PostX::make(['title' => 'test']);
         $post->details = PostDetailsX::make(['description' => 'test']);
