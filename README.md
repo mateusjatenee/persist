@@ -1,4 +1,4 @@
-# Laravel Persist 
+# Persist 
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mateusjatenee/laravel-persist.svg?style=flat-square)](https://packagist.org/packages/mateusjatenee/laravel-persist)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/mateusjatenee/laravel-persist/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/mateusjatenee/laravel-persist/actions?query=workflow%3Arun-tests+branch%3Amain)
